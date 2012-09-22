@@ -21,18 +21,10 @@ namespace Voting.Controllers
             var vote = new Vote { Choice = request.Body };
             vote.Save();
 
-            try
-            {
-                var context = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
+            var context = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
 
-                context.Clients.update(
-                    string.Format("Vote Choice: {0}", vote.Choice));
-            }
-            catch (Exception ex)
-            {
-                return TwiML(new TwilioResponse().Sms(ex.Message));
-            }
-
+            context.Clients.updateVotes(
+                string.Format("Vote Choice: {0}", vote.Choice));
 
             var response = new TwilioResponse();
             response.Sms("Thanks for voting!");
@@ -42,8 +34,9 @@ namespace Voting.Controllers
 
         public ActionResult Test(string message)
         {
-            var context = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
-            context.Clients.update(message);
+            var voteHub = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
+
+            voteHub.Clients.updateVotes("Received");
 
             return View();
         }
