@@ -1,4 +1,6 @@
-﻿using System.Web.Mvc;
+﻿using System.Collections.Generic;
+using System.Web.Mvc;
+using Voting.Models;
 
 namespace Voting.Controllers
 {
@@ -6,9 +8,9 @@ namespace Voting.Controllers
     {
         public ActionResult Index()
         {
-            ViewBag.Message = "Modify this template to kick-start your ASP.NET MVC application.";
+            var votes = Vote.All();
 
-            return View();
+            return View(votes);
         }
     }
 }

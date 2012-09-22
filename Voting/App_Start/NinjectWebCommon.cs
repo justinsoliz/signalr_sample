@@ -1,3 +1,5 @@
+using Voting.Dapper;
+
 [assembly: WebActivator.PreApplicationStartMethod(typeof(Voting.App_Start.NinjectWebCommon), "Start")]
 [assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(Voting.App_Start.NinjectWebCommon), "Stop")]
 
@@ -9,22 +11,23 @@ namespace Voting.App_Start
     using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 
     using Ninject;
+    using Ninject.Extensions.Conventions;
     using Ninject.Web.Common;
 
-    public static class NinjectWebCommon 
+    public static class NinjectWebCommon
     {
         private static readonly Bootstrapper bootstrapper = new Bootstrapper();
 
         /// <summary>
         /// Starts the application
         /// </summary>
-        public static void Start() 
+        public static void Start()
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
             DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
             bootstrapper.Initialize(CreateKernel);
         }
-        
+
         /// <summary>
         /// Stops the application.
         /// </summary>
@@ -32,17 +35,26 @@ namespace Voting.App_Start
         {
             bootstrapper.ShutDown();
         }
-        
+
         /// <summary>
         /// Creates the kernel that will manage your application.
         /// </summary>
         /// <returns>The created kernel.</returns>
         private static IKernel CreateKernel()
         {
-            var kernel = new StandardKernel();
+            var kernel = Container.Init();
+
+
+            kernel.Bind(x => x
+                 .FromAssembliesMatching("*")
+                 .SelectAllClasses()
+                 .BindDefaultInterface());
+
             kernel.Bind<Func<IKernel>>().ToMethod(ctx => () => new Bootstrapper().Kernel);
             kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
-            
+
+            kernel.Bind(typeof(IDao<>)).To(typeof(DapperDao<>));
+
             RegisterServices(kernel);
             return kernel;
         }
@@ -53,6 +65,6 @@ namespace Voting.App_Start
         /// <param name="kernel">The kernel.</param>
         private static void RegisterServices(IKernel kernel)
         {
-        }        
+        }
     }
 }

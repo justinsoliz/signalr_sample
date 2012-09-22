@@ -1,4 +1,11 @@
-﻿<h2>Home#Index</h2>
-<p>
-    Content
-</p>
+﻿@model IList<Voting.Models.Vote>
+
+<h2>Home#Index</h2>
+
+
+@foreach(var vote in Model)
+{
+    <p>
+        Vote Choice: @vote.Choice
+    </p>
+}
