@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Web.Mvc;
 using SignalR;
 using Twilio.TwiML;
 using Twilio.TwiML.Mvc;
@@ -20,10 +21,18 @@ namespace Voting.Controllers
             var vote = new Vote { Choice = request.Body };
             vote.Save();
 
-            var context = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
+            try
+            {
+                var context = GlobalHost.ConnectionManager.GetHubContext<VoteHub>();
 
-            context.Clients.update(
-                string.Format("Vote Choice: {0}", vote.Choice));
+                context.Clients.update(
+                    string.Format("Vote Choice: {0}", vote.Choice));
+            }
+            catch (Exception ex)
+            {
+                return TwiML(new TwilioResponse().Sms(ex.Message));
+            }
+
 
             var response = new TwilioResponse();
             response.Sms("Thanks for voting!");
